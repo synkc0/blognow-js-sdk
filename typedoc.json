@@ -1,0 +1,39 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "readme": "README.md",
+  "name": "BlogNow SDK",
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeExternals": true,
+  "hideGenerator": false,
+  "disableSources": false,
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/tests/**/*"
+  ],
+  "theme": "default",
+  "navigationLinks": {
+    "GitHub": "https://github.com/synkc0/blognow-js-sdk",
+    "NPM": "https://www.npmjs.com/package/@blognow/sdk"
+  },
+  "sidebarLinks": {
+    "GitHub Issues": "https://github.com/synkc0/blognow-js-sdk/issues",
+    "Changelog": "https://github.com/synkc0/blognow-js-sdk/blob/main/CHANGELOG.md"
+  },
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Classes",
+    "Interfaces",
+    "Type Aliases",
+    "Enumerations",
+    "Functions"
+  ],
+  "sort": ["source-order"],
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  }
+}

@@ -40,6 +40,14 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "typecheck": "tsc --noEmit",
+    "docs": "typedoc src/index.ts --out docs --readme README.md --exclude '**/*.test.ts' --exclude '**/*.spec.ts'",
+    "docs:serve": "npm run docs && npx http-server docs -p 8080",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor", 
+    "release:major": "./scripts/release.sh major",
+    "release:alpha": "./scripts/release.sh prerelease --alpha",
+    "release:beta": "./scripts/release.sh prerelease --beta",
+    "release:rc": "./scripts/release.sh prerelease --rc",
     "prepublishOnly": "npm run build",
     "dev": "tsc --watch"
   },
@@ -57,6 +65,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "ts-jest": "^29.1.1",
     "tslib": "^2.6.2",
+    "typedoc": "^0.25.2",
     "typescript": "^5.2.2"
   },
   "sideEffects": false
