@@ -1,8 +1,14 @@
 {
   "name": "@blognow/sdk",
-  "version": "1.0.0",
+  "version": "1.0.1-alpha.0",
   "description": "Official JavaScript/TypeScript SDK for BlogNow API",
-  "keywords": ["blognow", "blog", "cms", "typescript", "javascript"],
+  "keywords": [
+    "blognow",
+    "blog",
+    "cms",
+    "typescript",
+    "javascript"
+  ],
   "homepage": "https://github.com/synkc0/blognow-js-sdk#readme",
   "bugs": {
     "url": "https://github.com/synkc0/blognow-js-sdk/issues"
@@ -23,7 +29,12 @@
       "types": "./dist/types/index.d.ts"
     }
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=14.0.0"
   },
@@ -43,7 +54,7 @@
     "docs": "typedoc src/index.ts --out docs --readme README.md --exclude '**/*.test.ts' --exclude '**/*.spec.ts'",
     "docs:serve": "npm run docs && npx http-server docs -p 8080",
     "release:patch": "./scripts/release.sh patch",
-    "release:minor": "./scripts/release.sh minor", 
+    "release:minor": "./scripts/release.sh minor",
     "release:major": "./scripts/release.sh major",
     "release:alpha": "./scripts/release.sh prerelease --alpha",
     "release:beta": "./scripts/release.sh prerelease --beta",
