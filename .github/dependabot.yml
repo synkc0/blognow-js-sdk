@@ -1,0 +1,91 @@
+version: 2
+
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "synkc0"
+    assignees:
+      - "synkc0"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Group updates by dependency type
+    groups:
+      # Production dependencies
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "typescript"
+          - "jest"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "rollup*"
+          - "@rollup/*"
+          - "rimraf"
+          - "ts-jest"
+          - "tslib"
+          - "typedoc"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Development dependencies
+      development-dependencies:
+        patterns:
+          - "@types/*"
+          - "typescript"
+          - "jest"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "rollup*"
+          - "@rollup/*"
+          - "rimraf"
+          - "ts-jest"
+          - "tslib"
+          - "typedoc"
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Ignore specific dependencies that require manual updates
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "rollup"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "synkc0"
+    assignees:
+      - "synkc0"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
