@@ -1,9 +1,9 @@
 import { BlogNowConfig, RequestOptions } from "../types";
-import { 
-  createErrorFromResponse, 
-  NetworkError, 
-  TimeoutError, 
-  ConfigurationError 
+import {
+  createErrorFromResponse,
+  NetworkError,
+  TimeoutError,
+  ConfigurationError,
 } from "./errors";
 
 export class HttpClient {
@@ -51,12 +51,12 @@ export class HttpClient {
 
   private buildUrl(path: string, params?: Record<string, any>): string {
     const url = new URL(path, this.config.baseUrl);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(v => url.searchParams.append(key, String(v)));
+            value.forEach((v) => url.searchParams.append(key, String(v)));
           } else {
             url.searchParams.append(key, String(value));
           }
@@ -67,17 +67,22 @@ export class HttpClient {
     return url.toString();
   }
 
-  private getHeaders(customHeaders?: Record<string, string>): Record<string, string> {
+  private getHeaders(
+    customHeaders?: Record<string, string>
+  ): Record<string, string> {
     return {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${this.config.apiKey}`,
-      "User-Agent": "@blognow/js-sdk/1.0.0",
+      Authorization: `Bearer ${this.config.apiKey}`,
+      "User-Agent": "@blognow/sdk/1.0.0",
       ...this.config.customHeaders,
       ...customHeaders,
     };
   }
 
-  private async makeRequest<T>(options: RequestOptions, attempt = 1): Promise<T> {
+  private async makeRequest<T>(
+    options: RequestOptions,
+    attempt = 1
+  ): Promise<T> {
     await this.waitForRateLimit();
 
     const url = this.buildUrl(options.path, options.params);
@@ -122,18 +127,19 @@ export class HttpClient {
       }
 
       return response.text() as unknown as T;
-
     } catch (error) {
       clearTimeout(timeoutId);
 
       if (error instanceof Error && error.name === "AbortError") {
-        throw new TimeoutError(`Request timed out after ${this.config.timeout}ms`);
+        throw new TimeoutError(
+          `Request timed out after ${this.config.timeout}ms`
+        );
       }
 
       if (error instanceof TypeError && error.message.includes("fetch")) {
         if (attempt <= this.config.retries) {
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           return this.makeRequest<T>(options, attempt + 1);
         }
         throw new NetworkError("Network request failed", error);
@@ -144,12 +150,12 @@ export class HttpClient {
   }
 
   private async handleErrorResponse(
-    response: Response, 
-    options: RequestOptions, 
+    response: Response,
+    options: RequestOptions,
     attempt: number
   ): Promise<never> {
     let errorData: any;
-    
+
     try {
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
@@ -161,20 +167,21 @@ export class HttpClient {
       errorData = null;
     }
 
-    const message = errorData?.message || errorData?.error || response.statusText;
-    
+    const message =
+      errorData?.message || errorData?.error || response.statusText;
+
     if (response.status === 429) {
       const retryAfter = response.headers.get("retry-after");
       if (retryAfter && attempt <= this.config.retries) {
         const delay = parseInt(retryAfter) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return this.makeRequest(options, attempt + 1) as never;
       }
     }
 
     if (response.status >= 500 && attempt <= this.config.retries) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return this.makeRequest(options, attempt + 1) as never;
     }
 
@@ -189,7 +196,9 @@ export class HttpClient {
     return result;
   }
 
-  private sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  private sanitizeHeaders(
+    headers: Record<string, string>
+  ): Record<string, string> {
     const sanitized = { ...headers };
     if (sanitized.Authorization) {
       sanitized.Authorization = "Bearer [REDACTED]";
@@ -201,19 +210,34 @@ export class HttpClient {
     return this.makeRequest<T>({ method: "GET", path, params });
   }
 
-  public async post<T>(path: string, body?: any, headers?: Record<string, string>): Promise<T> {
+  public async post<T>(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.makeRequest<T>({ method: "POST", path, body, headers });
   }
 
-  public async put<T>(path: string, body?: any, headers?: Record<string, string>): Promise<T> {
+  public async put<T>(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.makeRequest<T>({ method: "PUT", path, body, headers });
   }
 
-  public async patch<T>(path: string, body?: any, headers?: Record<string, string>): Promise<T> {
+  public async patch<T>(
+    path: string,
+    body?: any,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.makeRequest<T>({ method: "PATCH", path, body, headers });
   }
 
-  public async delete<T>(path: string, headers?: Record<string, string>): Promise<T> {
+  public async delete<T>(
+    path: string,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.makeRequest<T>({ method: "DELETE", path, headers });
   }
 

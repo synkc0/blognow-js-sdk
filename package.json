@@ -1,15 +1,15 @@
 {
-  "name": "@blognow/js-sdk",
+  "name": "@blognow/sdk",
   "version": "1.0.0",
   "description": "Official JavaScript/TypeScript SDK for BlogNow API",
-  "keywords": ["blognow", "blog", "cms", "api", "sdk", "typescript", "javascript"],
-  "homepage": "https://github.com/blognow/js-sdk#readme",
+  "keywords": ["blognow", "blog", "cms", "typescript", "javascript"],
+  "homepage": "https://github.com/synkc0/blognow-js-sdk#readme",
   "bugs": {
-    "url": "https://github.com/blognow/js-sdk/issues"
+    "url": "https://github.com/synkc0/blognow-js-sdk/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blognow/js-sdk.git"
+    "url": "git+https://github.com/synkc0/blognow-js-sdk.git"
   },
   "license": "MIT",
   "author": "BlogNow Team",

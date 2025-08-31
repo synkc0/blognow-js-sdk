@@ -1,6 +1,6 @@
 # BlogNow JavaScript/TypeScript SDK
 
-[![npm version](https://badge.fury.io/js/%40blognow%2Fjs-sdk.svg)](https://badge.fury.io/js/%40blognow%2Fjs-sdk)
+[![npm version](https://badge.fury.io/js/%40blognow%2Fsdk.svg)](https://badge.fury.io/js/%40blognow%2Fsdk)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -20,13 +20,13 @@ Official JavaScript/TypeScript SDK for the BlogNow API. This SDK provides a simp
 ## Installation
 
 ```bash
-npm install @blognow/js-sdk
+npm install @blognow/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { BlogNowClient } from "@blognow/js-sdk";
+import { BlogNowClient } from "@blognow/sdk";
 
 const client = new BlogNowClient({
   apiKey: "your-api-key",
@@ -40,7 +40,7 @@ const posts = await client.posts.getPublishedPosts({
 });
 
 console.log(`Found ${posts.total} posts`);
-posts.items.forEach(post => {
+posts.items.forEach((post) => {
   console.log(`- ${post.title}`);
 });
 ```
@@ -50,7 +50,7 @@ posts.items.forEach(post => {
 ### Basic Configuration
 
 ```typescript
-import { BlogNowClient } from "@blognow/js-sdk";
+import { BlogNowClient } from "@blognow/sdk";
 
 const client = new BlogNowClient({
   apiKey: "your-api-key",
@@ -62,14 +62,15 @@ const client = new BlogNowClient({
 ```typescript
 const client = new BlogNowClient({
   apiKey: "your-api-key",
-  baseUrl: "https://api.blognow.com",     // API base URL
-  timeout: 30000,                          // Request timeout (30s)
-  retries: 3,                              // Max retry attempts
-  rateLimitPerSecond: 10,                  // Rate limit (10 req/sec)
-  debug: false,                            // Debug logging
-  customHeaders: {                         // Custom headers
-    "X-Custom-Header": "value"
-  }
+  baseUrl: "https://api.blognow.com", // API base URL
+  timeout: 30000, // Request timeout (30s)
+  retries: 3, // Max retry attempts
+  rateLimitPerSecond: 10, // Rate limit (10 req/sec)
+  debug: false, // Debug logging
+  customHeaders: {
+    // Custom headers
+    "X-Custom-Header": "value",
+  },
 });
 ```
 
@@ -84,7 +85,7 @@ const posts = await client.posts.getPublishedPosts({
   page: 1,
   size: 20,
   sortBy: "published_at",
-  sortOrder: "desc"
+  sortOrder: "desc",
 });
 ```
 
@@ -93,7 +94,7 @@ const posts = await client.posts.getPublishedPosts({
 ```typescript
 const posts = await client.posts.getAllPosts({
   status: PostStatus.DRAFT,
-  isFeatured: true
+  isFeatured: true,
 });
 ```
 
@@ -107,7 +108,7 @@ const post = await client.posts.getPost("my-post-slug");
 
 ```typescript
 const posts = await client.posts.getPostsByAuthor("author-uuid", {
-  size: 50
+  size: 50,
 });
 ```
 
@@ -116,7 +117,7 @@ const posts = await client.posts.getPostsByAuthor("author-uuid", {
 ```typescript
 const posts = await client.posts.searchPosts("javascript tutorial", {
   status: PostStatus.PUBLISHED,
-  sortBy: "created_at"
+  sortBy: "created_at",
 });
 ```
 
@@ -127,7 +128,7 @@ const newPost = await client.posts.createPost({
   title: "My New Post",
   content: "This is the content of my post",
   status: PostStatus.PUBLISHED,
-  isFeatured: true
+  isFeatured: true,
 });
 ```
 
@@ -137,7 +138,7 @@ const newPost = await client.posts.createPost({
 const updatedPost = await client.posts.updatePost({
   id: "post-id",
   title: "Updated Title",
-  content: "Updated content"
+  content: "Updated content",
 });
 ```
 
@@ -160,7 +161,7 @@ const posts = await client.posts.getPostsWithAdvancedFiltering({
   sortBy: "published_at",
   sortOrder: "desc",
   page: 1,
-  size: 20
+  size: 20,
 });
 ```
 
@@ -168,7 +169,7 @@ const posts = await client.posts.getPostsWithAdvancedFiltering({
 
 ```typescript
 const featuredPosts = await client.posts.getFeaturedPosts({
-  size: 5
+  size: 5,
 });
 ```
 
@@ -193,15 +194,15 @@ let page = 1;
 const allPosts = [];
 
 do {
-  const response = await client.posts.getPublishedPosts({ 
-    page, 
-    size: 20 
+  const response = await client.posts.getPublishedPosts({
+    page,
+    size: 20,
   });
-  
+
   allPosts.push(...response.items);
   page++;
-  
-  console.log(`Loaded page ${page-1}/${response.pages}`);
+
+  console.log(`Loaded page ${page - 1}/${response.pages}`);
 } while (page <= response.pages);
 ```
 
@@ -211,7 +212,7 @@ do {
 // Iterate through all posts
 for await (const post of client.posts.iterateAllPosts()) {
   console.log(post.title);
-  
+
   // Break after processing 100 posts
   if (post.viewCount > 1000) break;
 }
@@ -231,7 +232,9 @@ for await (const post of client.posts.iteratePostsByAuthor("author-uuid")) {
 
 ```typescript
 const stats = await client.posts.getPostStatistics();
-console.log(`Total: ${stats.total}, Published: ${stats.published}, Draft: ${stats.draft}`);
+console.log(
+  `Total: ${stats.total}, Published: ${stats.published}, Draft: ${stats.draft}`
+);
 ```
 
 ## Error Handling
@@ -239,15 +242,15 @@ console.log(`Total: ${stats.total}, Published: ${stats.published}, Draft: ${stat
 The SDK provides specific error classes for different scenarios:
 
 ```typescript
-import { 
-  APIKeyError, 
-  NotFoundError, 
-  ValidationError, 
+import {
+  APIKeyError,
+  NotFoundError,
+  ValidationError,
   RateLimitError,
   ServerError,
   NetworkError,
-  TimeoutError 
-} from "@blognow/js-sdk";
+  TimeoutError,
+} from "@blognow/sdk";
 
 try {
   const post = await client.posts.getPost("non-existent-slug");
@@ -275,25 +278,25 @@ try {
 The SDK is written in TypeScript and includes complete type definitions:
 
 ```typescript
-import { 
-  BlogNowClient, 
-  Post, 
-  PostStatus, 
+import {
+  BlogNowClient,
+  Post,
+  PostStatus,
   CreatePostRequest,
   GetPostsOptions,
-  PaginatedResponse 
-} from "@blognow/js-sdk";
+  PaginatedResponse,
+} from "@blognow/sdk";
 
 // Type-safe configuration
 const client = new BlogNowClient({
-  apiKey: "your-key"
+  apiKey: "your-key",
 });
 
 // Type-safe API calls
 const posts: PaginatedResponse<Post> = await client.posts.getPublishedPosts({
   status: PostStatus.PUBLISHED, // Enum with auto-complete
-  sortBy: "created_at",         // Only valid sort fields allowed
-  sortOrder: "desc"             // "asc" | "desc"
+  sortBy: "created_at", // Only valid sort fields allowed
+  sortOrder: "desc", // "asc" | "desc"
 });
 
 // Type-safe post creation
@@ -301,7 +304,7 @@ const newPost: CreatePostRequest = {
   title: "My Post",
   content: "Content here",
   status: PostStatus.DRAFT,
-  isFeatured: false
+  isFeatured: false,
 };
 
 const createdPost: Post = await client.posts.createPost(newPost);
@@ -313,20 +316,20 @@ const createdPost: Post = await client.posts.createPost(newPost);
 
 ```typescript
 // CommonJS
-const { BlogNowClient } = require("@blognow/js-sdk");
+const { BlogNowClient } = require("@blognow/sdk");
 
 // ES Modules
-import { BlogNowClient } from "@blognow/js-sdk";
+import { BlogNowClient } from "@blognow/sdk";
 ```
 
 ### Browser
 
 ```html
 <!-- UMD Build -->
-<script src="https://unpkg.com/@blognow/js-sdk@latest/dist/umd/index.js"></script>
+<script src="https://unpkg.com/@blognow/sdk@latest/dist/umd/index.js"></script>
 <script>
   const client = new BlogNowSDK.BlogNowClient({
-    apiKey: "your-api-key"
+    apiKey: "your-api-key",
   });
 </script>
 ```
@@ -337,7 +340,7 @@ The SDK supports tree-shaking and works with all modern bundlers (Webpack, Rollu
 
 ```typescript
 // Only imports what you need
-import { BlogNowClient, PostStatus } from "@blognow/js-sdk";
+import { BlogNowClient, PostStatus } from "@blognow/sdk";
 ```
 
 ## Examples
@@ -348,16 +351,16 @@ import { BlogNowClient, PostStatus } from "@blognow/js-sdk";
 async function loadHomepage() {
   const [featuredPosts, recentPosts] = await Promise.all([
     client.posts.getFeaturedPosts({ size: 3 }),
-    client.posts.getPublishedPosts({ 
-      size: 10, 
-      sortBy: "published_at", 
-      sortOrder: "desc" 
-    })
+    client.posts.getPublishedPosts({
+      size: 10,
+      sortBy: "published_at",
+      sortOrder: "desc",
+    }),
   ]);
 
   return {
     featured: featuredPosts.items,
-    recent: recentPosts.items
+    recent: recentPosts.items,
   };
 }
 ```
@@ -369,14 +372,14 @@ async function searchBlog(query: string, page = 1) {
   const results = await client.posts.searchPosts(query, {
     page,
     size: 10,
-    status: PostStatus.PUBLISHED
+    status: PostStatus.PUBLISHED,
   });
 
   return {
     posts: results.items,
     totalPages: results.pages,
     currentPage: results.page,
-    totalResults: results.total
+    totalResults: results.total,
   };
 }
 ```
@@ -397,7 +400,7 @@ async function loadAuthorProfile(authorId: string) {
     posts,
     totalPosts: posts.length,
     totalViews,
-    averageViews: Math.round(totalViews / posts.length)
+    averageViews: Math.round(totalViews / posts.length),
   };
 }
 ```
@@ -407,7 +410,9 @@ async function loadAuthorProfile(authorId: string) {
 ```typescript
 async function publishDrafts(authorId: string) {
   const drafts = await client.posts.getPostsByStatus(PostStatus.DRAFT);
-  const authorDrafts = drafts.items.filter(post => post.authorId === authorId);
+  const authorDrafts = drafts.items.filter(
+    (post) => post.authorId === authorId
+  );
 
   const publishedPosts = [];
   for (const draft of authorDrafts) {
@@ -415,7 +420,7 @@ async function publishDrafts(authorId: string) {
       const published = await client.posts.updatePost({
         id: draft.id,
         status: PostStatus.PUBLISHED,
-        publishedAt: new Date().toISOString()
+        publishedAt: new Date().toISOString(),
       });
       publishedPosts.push(published);
     } catch (error) {
@@ -434,11 +439,11 @@ The SDK automatically handles rate limiting:
 ```typescript
 const client = new BlogNowClient({
   apiKey: "your-key",
-  rateLimitPerSecond: 5 // Max 5 requests per second
+  rateLimitPerSecond: 5, // Max 5 requests per second
 });
 
 // These will be automatically queued and spaced out
-const promises = Array.from({ length: 20 }, (_, i) => 
+const promises = Array.from({ length: 20 }, (_, i) =>
   client.posts.getPost(`post-${i}`)
 );
 
@@ -452,7 +457,7 @@ Enable debug logging to see HTTP requests and responses:
 ```typescript
 const client = new BlogNowClient({
   apiKey: "your-key",
-  debug: true
+  debug: true,
 });
 
 // Will log all HTTP requests and responses (API keys are redacted)
@@ -510,9 +515,9 @@ MIT License. See [LICENSE](LICENSE) file for details.
 ## Support
 
 - 📖 [Documentation](https://docs.blognow.com)
-- 🐛 [Report Issues](https://github.com/blognow/js-sdk/issues)
-- 💬 [Community Discord](https://discord.gg/blognow)
-- 📧 [Email Support](mailto:support@blognow.com)
+- 🐛 [Report Issues](https://github.com/synkc0/blognow-js-sdk/issues)
+<!-- - 💬 [Community Discord](https://discord.gg/blognow) -->
+- 📧 [Email Support](mailto:info@synk.consulting)
 
 ---
 

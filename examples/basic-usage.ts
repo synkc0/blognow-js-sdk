@@ -1,4 +1,4 @@
-import { BlogNowClient, PostStatus } from "../src/index";
+import { BlogNowClient, PostStatus } from "@blognow/sdk";
 
 async function basicUsageExample() {
   // Initialize the client
