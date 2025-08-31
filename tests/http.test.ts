@@ -18,21 +18,35 @@ describe('HttpClient', () => {
     debug: false,
   };
 
+  let clients: HttpClient[] = [];
+
+  const createClient = (config = validConfig) => {
+    const client = new HttpClient(config);
+    clients.push(client);
+    return client;
+  };
+
+  afterEach(() => {
+    // Clean up all created clients
+    clients.forEach(client => client.destroy());
+    clients = [];
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('Constructor', () => {
     it('should create HttpClient with valid config', () => {
-      expect(() => new HttpClient(validConfig)).not.toThrow();
+      expect(() => createClient()).not.toThrow();
     });
 
     it('should throw ConfigurationError when apiKey is missing', () => {
-      expect(() => new HttpClient({ ...validConfig, apiKey: '' })).toThrow(ConfigurationError);
+      expect(() => createClient({ ...validConfig, apiKey: '' })).toThrow(ConfigurationError);
     });
 
     it('should use default values for optional config', () => {
-      const client = new HttpClient({ apiKey: 'test-key' });
+      const client = createClient({ apiKey: 'test-key' });
       expect(client).toBeDefined();
     });
   });
@@ -41,11 +55,11 @@ describe('HttpClient', () => {
     let client: HttpClient;
 
     beforeEach(() => {
-      client = new HttpClient(validConfig);
+      client = createClient();
     });
 
     afterEach(() => {
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
 
     it('should make GET request successfully', async () => {
@@ -140,22 +154,31 @@ describe('HttpClient', () => {
     });
 
     it('should handle timeout', async () => {
-      const client = new HttpClient({ ...validConfig, timeout: 100 });
+      const client = createClient({ ...validConfig, timeout: 100 });
       
-      mockFetch.mockImplementation(() => new Promise((resolve) => {
-        // Never resolve to simulate timeout
-      }));
+      // Mock fetch to simulate a hanging request that gets aborted
+      mockFetch.mockImplementation(() => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            const error = new Error('AbortError');
+            error.name = 'AbortError';
+            reject(error);
+          }, 50); // Abort before timeout
+        });
+      });
 
       await expect(client.get('/api/posts')).rejects.toThrow(TimeoutError);
-      client.destroy();
-    }, 10000);
+      // Client will be destroyed in afterEach
+    }, 1000);
 
     it('should retry on network error', async () => {
-      const client = new HttpClient({ ...validConfig, retries: 2 });
+      const client = createClient({ ...validConfig, retries: 2 });
+      
+      const networkError = new TypeError('fetch failed');
       
       mockFetch
-        .mockRejectedValueOnce(new TypeError('Network error'))
-        .mockRejectedValueOnce(new TypeError('Network error'))
+        .mockRejectedValueOnce(networkError)
+        .mockRejectedValueOnce(networkError)
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
@@ -167,11 +190,11 @@ describe('HttpClient', () => {
       
       expect(mockFetch).toHaveBeenCalledTimes(3);
       expect(result).toBe('success');
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
 
     it('should retry on server error', async () => {
-      const client = new HttpClient({ ...validConfig, retries: 2 });
+      const client = createClient({ ...validConfig, retries: 2 });
       
       mockFetch
         .mockResolvedValueOnce({
@@ -192,11 +215,11 @@ describe('HttpClient', () => {
       
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(result).toBe('success');
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
 
     it('should handle rate limiting with retry-after header', async () => {
-      const client = new HttpClient({ ...validConfig, retries: 2 });
+      const client = createClient({ ...validConfig, retries: 2 });
       
       mockFetch
         .mockResolvedValueOnce({
@@ -219,37 +242,39 @@ describe('HttpClient', () => {
       const result = await client.get('/api/posts');
       
       expect(result).toBe('success');
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
 
     it('should throw NetworkError after max retries', async () => {
-      const client = new HttpClient({ ...validConfig, retries: 1 });
+      const client = createClient({ ...validConfig, retries: 1 });
+      
+      const networkError = new TypeError('fetch failed');
       
       mockFetch
-        .mockRejectedValueOnce(new TypeError('Network error'))
-        .mockRejectedValueOnce(new TypeError('Network error'));
+        .mockRejectedValueOnce(networkError)
+        .mockRejectedValueOnce(networkError);
 
       await expect(client.get('/api/posts')).rejects.toThrow(NetworkError);
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
   });
 
   describe('Rate Limiting', () => {
     it('should create client with rate limit configuration', () => {
-      const client = new HttpClient({ 
+      const client = createClient({ 
         ...validConfig, 
         rateLimitPerSecond: 2 
       });
 
       expect(client).toBeDefined();
-      client.destroy();
+      // Client will be destroyed in afterEach
     });
   });
 
   describe('Cleanup', () => {
     it('should cleanup resources on destroy', () => {
-      const client = new HttpClient(validConfig);
+      const client = createClient();
       expect(() => client.destroy()).not.toThrow();
     });
   });

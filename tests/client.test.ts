@@ -13,13 +13,27 @@ describe('BlogNowClient', () => {
     debug: false,
   };
 
+  let clients: BlogNowClient[] = [];
+
+  const createClient = (config = validConfig) => {
+    const client = new BlogNowClient(config);
+    clients.push(client);
+    return client;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    // Clean up all created clients
+    clients.forEach(client => client.destroy());
+    clients = [];
+  });
+
   describe('Constructor', () => {
     it('should create client with valid config', () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       
       expect(client).toBeDefined();
       expect(client.posts).toBeInstanceOf(PostsService);
@@ -80,7 +94,7 @@ describe('BlogNowClient', () => {
     });
 
     it('should use default values when not provided', () => {
-      const client = new BlogNowClient({ apiKey: 'test-key' });
+      const client = createClient({ apiKey: 'test-key' });
       
       expect(client).toBeDefined();
       expect(client.posts).toBeInstanceOf(PostsService);
@@ -89,7 +103,7 @@ describe('BlogNowClient', () => {
 
   describe('Health Check', () => {
     it('should perform health check successfully', async () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       const mockResponse = { 
         status: 'healthy', 
         timestamp: '2023-01-01T00:00:00Z' 
@@ -114,7 +128,7 @@ describe('BlogNowClient', () => {
 
   describe('Configuration', () => {
     it('should return frozen configuration', () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       const config = client.getConfig();
       
       expect(config).toBeDefined();
@@ -124,7 +138,7 @@ describe('BlogNowClient', () => {
     });
 
     it('should not allow modification of returned config', () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       const config = client.getConfig();
       
       expect(() => {
@@ -135,7 +149,7 @@ describe('BlogNowClient', () => {
 
   describe('Services', () => {
     it('should initialize posts service', () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       
       expect(client.posts).toBeInstanceOf(PostsService);
       expect(client.posts).toBeDefined();
@@ -144,7 +158,7 @@ describe('BlogNowClient', () => {
 
   describe('Cleanup', () => {
     it('should cleanup resources on destroy', () => {
-      const client = new BlogNowClient(validConfig);
+      const client = createClient();
       
       expect(() => client.destroy()).not.toThrow();
     });

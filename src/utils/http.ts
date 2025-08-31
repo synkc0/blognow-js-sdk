@@ -117,7 +117,7 @@ export class HttpClient {
       }
 
       if (!response.ok) {
-        await this.handleErrorResponse(response, options, attempt);
+        return await this.handleErrorResponse(response, options, attempt);
       }
 
       const contentType = response.headers.get("content-type");
@@ -136,7 +136,7 @@ export class HttpClient {
         );
       }
 
-      if (error instanceof TypeError && error.message.includes("fetch")) {
+      if (error instanceof TypeError) {
         if (attempt <= this.config.retries) {
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
           await new Promise((resolve) => setTimeout(resolve, delay));
@@ -149,11 +149,11 @@ export class HttpClient {
     }
   }
 
-  private async handleErrorResponse(
+  private async handleErrorResponse<T>(
     response: Response,
     options: RequestOptions,
     attempt: number
-  ): Promise<never> {
+  ): Promise<T> {
     let errorData: any;
 
     try {
@@ -175,14 +175,14 @@ export class HttpClient {
       if (retryAfter && attempt <= this.config.retries) {
         const delay = parseInt(retryAfter) * 1000;
         await new Promise((resolve) => setTimeout(resolve, delay));
-        return this.makeRequest(options, attempt + 1) as never;
+        return this.makeRequest<T>(options, attempt + 1);
       }
     }
 
     if (response.status >= 500 && attempt <= this.config.retries) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return this.makeRequest(options, attempt + 1) as never;
+      return this.makeRequest<T>(options, attempt + 1);
     }
 
     throw createErrorFromResponse(response.status, message, errorData);
