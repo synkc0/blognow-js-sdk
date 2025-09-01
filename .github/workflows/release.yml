@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -60,35 +64,37 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create GitHub Release
-      uses: actions/create-release@v1
+      run: |
+        PRERELEASE_FLAG=""
+        if [ "${{ steps.release-type.outputs.prerelease }}" = "true" ]; then
+          PRERELEASE_FLAG="--prerelease"
+        fi
+        
+        gh release create ${{ github.ref }} \
+          --title "Release ${{ steps.version.outputs.version }}" \
+          --notes "🚀 **BlogNow SDK v${{ steps.version.outputs.version }}**
+        
+        ## What's Changed
+        
+        See [CHANGELOG.md](https://github.com/synkc0/blognow-js-sdk/blob/main/CHANGELOG.md) for detailed changes.
+        
+        ## Installation
+        
+        \`\`\`bash
+        npm install @blognow/sdk@${{ steps.version.outputs.version }}
+        \`\`\`
+        
+        ## Documentation
+        
+        - 📖 [API Documentation](https://synkc0.github.io/blognow-js-sdk/)
+        - 💡 [Usage Examples](https://github.com/synkc0/blognow-js-sdk#examples)
+        
+        ---
+        
+        🤖 _This release was created automatically by GitHub Actions_" \
+          $PRERELEASE_FLAG
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.version.outputs.version }}
-        body: |
-          🚀 **BlogNow SDK v${{ steps.version.outputs.version }}**
-          
-          ## What's Changed
-          
-          See [CHANGELOG.md](https://github.com/synkc0/blognow-js-sdk/blob/main/CHANGELOG.md) for detailed changes.
-          
-          ## Installation
-          
-          ```bash
-          npm install @blognow/sdk@${{ steps.version.outputs.version }}
-          ```
-          
-          ## Documentation
-          
-          - 📖 [API Documentation](https://synkc0.github.io/blognow-js-sdk/)
-          - 💡 [Usage Examples](https://github.com/synkc0/blognow-js-sdk#examples)
-          
-          ---
-          
-          🤖 _This release was created automatically by GitHub Actions_
-        draft: false
-        prerelease: ${{ steps.release-type.outputs.prerelease }}
 
   docs:
     runs-on: ubuntu-latest
