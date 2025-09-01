@@ -59,6 +59,12 @@
     "release:alpha": "./scripts/release.sh prerelease --alpha",
     "release:beta": "./scripts/release.sh prerelease --beta",
     "release:rc": "./scripts/release.sh prerelease --rc",
+    "workflow:patch": "echo 'Use GitHub Actions: Bump Version and Release -> patch'",
+    "workflow:minor": "echo 'Use GitHub Actions: Bump Version and Release -> minor'",
+    "workflow:major": "echo 'Use GitHub Actions: Bump Version and Release -> major'",
+    "workflow:alpha": "echo 'Use GitHub Actions: Bump Version and Release -> prerelease (alpha)'",
+    "workflow:beta": "echo 'Use GitHub Actions: Bump Version and Release -> prerelease (beta)'",
+    "workflow:rc": "echo 'Use GitHub Actions: Bump Version and Release -> prerelease (rc)'",
     "prepublishOnly": "npm run build",
     "dev": "tsc --watch"
   },

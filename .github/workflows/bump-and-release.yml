@@ -1,0 +1,149 @@
+name: Bump Version and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      prerelease_type:
+        description: 'Prerelease type (only for prerelease)'
+        required: false
+        default: 'alpha'
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      new_tag: ${{ steps.version.outputs.new_tag }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build package
+        run: npm run build
+
+      - name: Bump version
+        id: version
+        run: |
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          PRERELEASE_TYPE="${{ github.event.inputs.prerelease_type }}"
+          
+          if [ "$RELEASE_TYPE" = "prerelease" ]; then
+            # For prerelease, use --preid flag
+            NEW_VERSION=$(npm version $RELEASE_TYPE --preid=$PRERELEASE_TYPE --no-git-tag-version)
+          else
+            # For regular releases
+            NEW_VERSION=$(npm version $RELEASE_TYPE --no-git-tag-version)
+          fi
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "📦 Bumped version to: $NEW_VERSION"
+
+      - name: Update CHANGELOG
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Create changelog entry
+          cat > temp_changelog_entry.md << EOF
+          ## [$NEW_VERSION] - $DATE
+          
+          ### Changes
+          - $RELEASE_TYPE release
+          - Updated package version to $NEW_VERSION
+          
+          EOF
+          
+          # Prepend to CHANGELOG.md if it exists
+          if [ -f "CHANGELOG.md" ]; then
+            cat temp_changelog_entry.md CHANGELOG.md > temp_changelog.md
+            mv temp_changelog.md CHANGELOG.md
+          else
+            cat > CHANGELOG.md << EOF
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          EOF
+            cat temp_changelog_entry.md >> CHANGELOG.md
+          fi
+          rm -f temp_changelog_entry.md
+
+      - name: Check if version already exists on NPM
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          VERSION_NO_V=${VERSION#v}  # Remove 'v' prefix if present
+          if npm view @blognow/sdk@$VERSION_NO_V version 2>/dev/null; then
+            echo "::error::Version $VERSION_NO_V already exists on NPM. Please try a different version bump."
+            exit 1
+          else
+            echo "✅ Version $VERSION_NO_V is available for publishing"
+          fi
+
+      - name: Commit version bump
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore: bump version to $NEW_VERSION ($RELEASE_TYPE release)
+          
+          - Updated package.json version
+          - Updated CHANGELOG.md  
+          - Automated version bump via GitHub Actions"
+
+      - name: Create and push tag
+        run: |
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
+          git tag $NEW_TAG
+          git push origin main
+          git push origin $NEW_TAG
+          echo "🏷️ Created and pushed tag: $NEW_TAG"
+
+  # Note: The release workflow will be automatically triggered by the tag push above
+  # No need to explicitly call it here since it's triggered by tags matching 'v*'

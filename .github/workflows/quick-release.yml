@@ -1,0 +1,126 @@
+name: Quick Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version (e.g., 1.2.0, 2.0.0-alpha.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  quick-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+            echo "::error::Invalid version format. Use semantic versioning (e.g., 1.2.0, 2.0.0-alpha.1)"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+      - name: Check if version already exists
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Check NPM
+          if npm view @blognow/sdk@$VERSION version 2>/dev/null; then
+            echo "::error::Version $VERSION already exists on NPM"
+            exit 1
+          fi
+          
+          # Check Git tags
+          if git tag -l | grep -q "^v$VERSION$"; then
+            echo "::error::Tag v$VERSION already exists"
+            exit 1
+          fi
+          
+          echo "✅ Version $VERSION is available"
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build package
+        run: npm run build
+
+      - name: Update package.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          npm version $VERSION --no-git-tag-version
+          echo "📦 Updated package.json to version $VERSION"
+
+      - name: Update CHANGELOG
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          
+          # Create changelog entry
+          cat > temp_changelog_entry.md << EOF
+          ## [v$VERSION] - $DATE
+          
+          ### Changes
+          - Manual release to version $VERSION
+          - See commit history for detailed changes
+          
+          EOF
+          
+          if [ -f "CHANGELOG.md" ]; then
+            cat temp_changelog_entry.md CHANGELOG.md > temp_changelog.md
+            mv temp_changelog.md CHANGELOG.md
+          else
+            cat > CHANGELOG.md << EOF
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          EOF
+            cat temp_changelog_entry.md >> CHANGELOG.md
+          fi
+          rm -f temp_changelog_entry.md
+
+      - name: Commit and tag
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore: release version $VERSION
+          
+          - Updated package.json to $VERSION
+          - Updated CHANGELOG.md
+          - Manual release via GitHub Actions"
+          
+          git tag "v$VERSION"
+          git push origin main
+          git push origin "v$VERSION"
+          
+          echo "🚀 Released version v$VERSION"
