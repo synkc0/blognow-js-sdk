@@ -30,7 +30,7 @@ import { BlogNowClient } from "@blognow/sdk";
 
 const client = new BlogNowClient({
   apiKey: "your-api-key",
-  baseUrl: "https://api.blognow.com", // optional
+  baseUrl: "https://api.blognow.tech", // optional
 });
 
 // Get published posts
@@ -62,7 +62,7 @@ const client = new BlogNowClient({
 ```typescript
 const client = new BlogNowClient({
   apiKey: "your-api-key",
-  baseUrl: "https://api.blognow.com", // API base URL
+  baseUrl: "https://api.blognow.tech", // API base URL
   timeout: 30000, // Request timeout (30s)
   retries: 3, // Max retry attempts
   rateLimitPerSecond: 10, // Rate limit (10 req/sec)
@@ -514,7 +514,7 @@ MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- 📖 [Documentation](https://docs.blognow.com)
+- 📖 [Documentation](https://docs.blognow.tech)
 - 🐛 [Report Issues](https://github.com/synkc0/blognow-js-sdk/issues)
 <!-- - 💬 [Community Discord](https://discord.gg/blognow) -->
 - 📧 [Email Support](mailto:info@synk.consulting)

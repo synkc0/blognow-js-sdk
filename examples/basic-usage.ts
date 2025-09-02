@@ -4,7 +4,7 @@ async function basicUsageExample() {
   // Initialize the client
   const client = new BlogNowClient({
     apiKey: process.env.BLOGNOW_API_KEY || "your-api-key",
-    baseUrl: "https://api.blognow.com",
+    baseUrl: "https://api.blognow.tech",
     debug: true,
   });
 
@@ -78,10 +78,9 @@ async function basicUsageExample() {
     } catch (error) {
       console.log("❌ Could not fetch post (slug might not exist)");
     }
-
   } catch (error) {
     console.error("❌ Error occurred:", error.message);
-    
+
     // Demonstrate specific error handling
     if (error.code === "INVALID_API_KEY") {
       console.log("💡 Make sure to set a valid API key");
@@ -109,7 +108,7 @@ async function errorHandlingExample() {
     console.log("Error Code:", error.code);
     console.log("Error Status:", error.status);
     console.log("Error Message:", error.message);
-    
+
     // You can check error types
     if (error.code === "INVALID_API_KEY") {
       console.log("🔑 Please provide a valid API key");
@@ -128,7 +127,8 @@ async function createPostExample() {
   try {
     const newPost = await client.posts.createPost({
       title: "My New Blog Post",
-      content: "This is the content of my new blog post. It's written using the BlogNow SDK!",
+      content:
+        "This is the content of my new blog post. It's written using the BlogNow SDK!",
       excerpt: "A post created with the BlogNow SDK",
       status: PostStatus.DRAFT,
       isFeatured: false,
@@ -141,10 +141,9 @@ async function createPostExample() {
     console.log(`Post Title: ${newPost.title}`);
     console.log(`Post Slug: ${newPost.slug}`);
     console.log(`Post Status: ${newPost.status}`);
-
   } catch (error) {
     console.error("❌ Failed to create post:", error.message);
-    
+
     if (error.code === "VALIDATION_ERROR") {
       console.log("Validation details:", error.details);
     }
@@ -156,7 +155,7 @@ async function createPostExample() {
 // Run the examples
 if (require.main === module) {
   console.log("🚀 BlogNow SDK Basic Usage Examples\n");
-  
+
   basicUsageExample()
     .then(() => {
       console.log("\n" + "=".repeat(50));
