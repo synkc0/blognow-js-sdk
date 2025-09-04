@@ -27,6 +27,9 @@ permissions:
   contents: write
   packages: write
 
+env:
+  APP_SECRET: ${{ secrets.VERSION_BUMPER_SECRET }}
+
 jobs:
   bump-version:
     runs-on: ubuntu-latest
@@ -39,7 +42,7 @@ jobs:
         id: app-token
         with:
           app-id: ${{ vars.VERSION_BUMPER_APPID }}
-          private-key: ${{ secrets.VERSION_BUMPER_SECRET }}
+          private-key: ${{ env.APP_SECRET }}
 
       - name: Checkout code
         uses: actions/checkout@v4
