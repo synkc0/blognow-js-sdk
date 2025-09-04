@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New version (e.g., 1.2.0, 2.0.0-alpha.1)'
+        description: "New version (e.g., 1.2.0, 2.0.0-alpha.1)"
         required: true
         type: string
 
@@ -15,13 +15,19 @@ permissions:
 jobs:
   quick-release:
     runs-on: ubuntu-latest
-    
+
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.VERSION_BUMPER_APPID }}
+          private-key: ${{ secrets.VERSION_BUMPER_SECRET }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configure Git
         run: |
@@ -32,7 +38,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -49,19 +55,19 @@ jobs:
       - name: Check if version already exists
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          
+
           # Check NPM
           if npm view @blognow/sdk@$VERSION version 2>/dev/null; then
             echo "::error::Version $VERSION already exists on NPM"
             exit 1
           fi
-          
+
           # Check Git tags
           if git tag -l | grep -q "^v$VERSION$"; then
             echo "::error::Tag v$VERSION already exists"
             exit 1
           fi
-          
+
           echo "✅ Version $VERSION is available"
 
       - name: Run tests
@@ -83,26 +89,26 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           DATE=$(date +%Y-%m-%d)
-          
+
           # Create changelog entry
           cat > temp_changelog_entry.md << EOF
           ## [v$VERSION] - $DATE
-          
+
           ### Changes
           - Manual release to version $VERSION
           - See commit history for detailed changes
-          
+
           EOF
-          
+
           if [ -f "CHANGELOG.md" ]; then
             cat temp_changelog_entry.md CHANGELOG.md > temp_changelog.md
             mv temp_changelog.md CHANGELOG.md
           else
             cat > CHANGELOG.md << EOF
           # Changelog
-          
+
           All notable changes to this project will be documented in this file.
-          
+
           EOF
             cat temp_changelog_entry.md >> CHANGELOG.md
           fi
@@ -111,16 +117,16 @@ jobs:
       - name: Commit and tag
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          
+
           git add package.json package-lock.json CHANGELOG.md
           git commit -m "chore: release version $VERSION
-          
+
           - Updated package.json to $VERSION
           - Updated CHANGELOG.md
           - Manual release via GitHub Actions"
-          
+
           git tag "v$VERSION"
-          git push origin main
+          git push -f origin main
           git push origin "v$VERSION"
-          
+
           echo "🚀 Released version v$VERSION"
