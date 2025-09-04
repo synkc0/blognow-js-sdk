@@ -18,7 +18,7 @@ export class HttpClient {
 
     this.config = {
       apiKey: config.apiKey,
-      baseUrl: config.baseUrl || "https://api.blognow.com",
+      baseUrl: config.baseUrl || "https://api.blognow.tech",
       timeout: config.timeout || 30000,
       retries: config.retries || 3,
       rateLimitPerSecond: config.rateLimitPerSecond || 10,
