@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Features
+
 - Initial release of BlogNow JavaScript/TypeScript SDK
 - Full TypeScript support with complete type definitions
 - Universal support for Node.js, browsers, and edge runtimes
 - Zero dependencies implementation using native fetch API
 
 #### Authentication & Configuration
+
 - API key authentication system
 - Configurable base URL, timeout, and retry settings
 - Built-in rate limiting with configurable requests per second
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debug logging with sensitive data redaction
 
 #### Posts API
+
 - `getPublishedPosts()` - Fetch published posts with pagination and filtering
 - `getAllPosts()` - Fetch posts with any status
 - `getPostsByAuthor()` - Fetch posts by specific author ID
@@ -38,17 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getPostStatistics()` - Get post count statistics
 
 #### Pagination Features
+
 - Manual pagination support with page/size parameters
-- Auto-pagination with async generators:
-  - `iterateAllPosts()` - Iterate through all posts
-  - `iteratePublishedPosts()` - Iterate through published posts
-  - `iteratePostsByAuthor()` - Iterate through posts by author
 - Configurable page sizes with API limit respect
 
 #### Error Handling
+
 - Comprehensive error class hierarchy:
   - `APIKeyError` - Invalid or missing API key (401)
-  - `NotFoundError` - Resource not found (404) 
+  - `NotFoundError` - Resource not found (404)
   - `ValidationError` - Request validation failed (422)
   - `RateLimitError` - Rate limit exceeded (429) with retry-after support
   - `ServerError` - Internal server errors (5xx)
@@ -58,8 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic error response parsing with detailed error information
 
 #### HTTP Client Features
+
 - Intelligent retry logic with exponential backoff
-- Automatic rate limiting to respect API limits  
+- Automatic rate limiting to respect API limits
 - Request/response timeout handling (30s default)
 - Network error detection and retries
 - Rate limit handling with automatic retry-after delays
@@ -68,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON serialization/deserialization
 
 #### Build & Distribution
+
 - Multiple output formats:
   - CommonJS (`dist/cjs/`) for Node.js compatibility
   - ES Modules (`dist/esm/`) for modern bundlers
@@ -78,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Side-effect free package marking
 
 #### Developer Experience
+
 - Complete TypeScript IntelliSense support
 - Comprehensive JSDoc documentation
 - Usage examples and guides
@@ -86,20 +90,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modern development tooling setup
 
 #### Testing
+
 - Jest test framework setup
 - Mock HTTP client for unit testing
 - Test coverage reporting
 - Automated test running in CI/CD
 
 #### Documentation
+
 - Comprehensive README with examples
 - TypeScript usage examples
-- Error handling guides  
+- Error handling guides
 - Pagination examples
 - Configuration options documentation
 - API reference documentation
 
 ### Technical Details
+
 - **Bundle Size**: <50KB minified + gzipped
 - **Node.js Support**: >=14.0.0
 - **TypeScript**: ^5.2.2
@@ -114,8 +121,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1-alpha.0] - 2025-08-31
 
 ### Planned Features
+
 - Categories API service
-- Tags API service  
+- Tags API service
 - File upload support
 - Webhook signature verification
 - Response caching mechanisms
@@ -129,8 +137,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Release Notes Format
 
 Each release entry includes:
+
 - **Added**: New features
-- **Changed**: Changes in existing functionality  
+- **Changed**: Changes in existing functionality
 - **Deprecated**: Soon-to-be removed features
 - **Removed**: Removed features
 - **Fixed**: Bug fixes

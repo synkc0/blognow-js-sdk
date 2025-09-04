@@ -112,15 +112,6 @@ const posts = await client.posts.getPostsByAuthor("author-uuid", {
 });
 ```
 
-#### Search Posts
-
-```typescript
-const posts = await client.posts.searchPosts("javascript tutorial", {
-  status: PostStatus.PUBLISHED,
-  sortBy: "created_at",
-});
-```
-
 #### Create Post
 
 ```typescript
@@ -204,28 +195,6 @@ do {
 
   console.log(`Loaded page ${page - 1}/${response.pages}`);
 } while (page <= response.pages);
-```
-
-#### Auto-Pagination with Generators
-
-```typescript
-// Iterate through all posts
-for await (const post of client.posts.iterateAllPosts()) {
-  console.log(post.title);
-
-  // Break after processing 100 posts
-  if (post.viewCount > 1000) break;
-}
-
-// Iterate through published posts only
-for await (const post of client.posts.iteratePublishedPosts({ size: 50 })) {
-  console.log(`Published: ${post.title}`);
-}
-
-// Iterate through posts by specific author
-for await (const post of client.posts.iteratePostsByAuthor("author-uuid")) {
-  console.log(`By Author: ${post.title}`);
-}
 ```
 
 ### Statistics
@@ -369,11 +338,13 @@ async function loadHomepage() {
 
 ```typescript
 async function searchBlog(query: string, page = 1) {
-  const results = await client.posts.searchPosts(query, {
+  const results = await client.posts.getPublishedPosts(
     page,
     size: 10,
-    status: PostStatus.PUBLISHED,
-  });
+    query,
+    sortBy: "published_at",
+    sortOrder: "desc",
+  );
 
   return {
     posts: results.items,
@@ -381,54 +352,6 @@ async function searchBlog(query: string, page = 1) {
     currentPage: results.page,
     totalResults: results.total,
   };
-}
-```
-
-### Author Profile
-
-```typescript
-async function loadAuthorProfile(authorId: string) {
-  const posts = [];
-  let totalViews = 0;
-
-  for await (const post of client.posts.iteratePostsByAuthor(authorId)) {
-    posts.push(post);
-    totalViews += post.viewCount;
-  }
-
-  return {
-    posts,
-    totalPosts: posts.length,
-    totalViews,
-    averageViews: Math.round(totalViews / posts.length),
-  };
-}
-```
-
-### Batch Operations
-
-```typescript
-async function publishDrafts(authorId: string) {
-  const drafts = await client.posts.getPostsByStatus(PostStatus.DRAFT);
-  const authorDrafts = drafts.items.filter(
-    (post) => post.authorId === authorId
-  );
-
-  const publishedPosts = [];
-  for (const draft of authorDrafts) {
-    try {
-      const published = await client.posts.updatePost({
-        id: draft.id,
-        status: PostStatus.PUBLISHED,
-        publishedAt: new Date().toISOString(),
-      });
-      publishedPosts.push(published);
-    } catch (error) {
-      console.error(`Failed to publish ${draft.title}:`, error);
-    }
-  }
-
-  return publishedPosts;
 }
 ```
 
