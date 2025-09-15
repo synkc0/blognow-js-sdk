@@ -17,16 +17,15 @@ export class PostsService {
   ): Promise<PaginatedResponse<Post>> {
     const params = {
       ...options,
-      status: PostStatus.PUBLISHED,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
   }
 
   async getAllPosts(
     options?: GetPostsOptions
   ): Promise<PaginatedResponse<Post>> {
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts/all", options);
+    return this.http.get<PaginatedResponse<Post>>("posts/all", options);
   }
 
   async getPostsByAuthor(
@@ -39,26 +38,26 @@ export class PostsService {
     };
 
     return this.http.get<PaginatedResponse<Post>>(
-      `/api/v1/posts/author/${authorId}`,
+      `posts/author/${authorId}`,
       params
     );
   }
 
   async getPost(slug: string): Promise<Post> {
-    return this.http.get<Post>(`/api/v1/posts/${slug}`);
+    return this.http.get<Post>(`posts/${slug}`);
   }
 
   async createPost(postData: CreatePostRequest): Promise<Post> {
-    return this.http.post<Post>("/api/v1/posts", postData);
+    return this.http.post<Post>("posts", postData);
   }
 
   async updatePost(postData: UpdatePostRequest): Promise<Post> {
     const { id, ...updateData } = postData;
-    return this.http.put<Post>(`/api/v1/posts/${id}`, updateData);
+    return this.http.put<Post>(`posts/${id}`, updateData);
   }
 
   async deletePost(id: string): Promise<void> {
-    await this.http.delete<void>(`/api/v1/posts/${id}`);
+    await this.http.delete<void>(`posts/${id}`);
   }
 
   async getFeaturedPosts(
@@ -69,7 +68,7 @@ export class PostsService {
       isFeatured: true,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
   }
 
   async getPostsByCategory(
@@ -81,7 +80,7 @@ export class PostsService {
       categoryId,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
   }
 
   async getPostsByStatus(
@@ -93,7 +92,7 @@ export class PostsService {
       status,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts/all", params);
+    return this.http.get<PaginatedResponse<Post>>("posts/all", params);
   }
 
   // async *iterateAllPosts(
@@ -171,8 +170,8 @@ export class PostsService {
   ): Promise<PaginatedResponse<Post>> {
     const endpoint =
       filters.status && filters.status !== PostStatus.PUBLISHED
-        ? "/api/v1/posts/all"
-        : "/api/v1/posts";
+        ? "posts/all"
+        : "posts";
 
     return this.http.get<PaginatedResponse<Post>>(endpoint, filters);
   }

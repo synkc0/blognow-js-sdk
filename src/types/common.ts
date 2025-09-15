@@ -16,12 +16,12 @@ export interface GetPostsOptions {
   page?: number;
   size?: number;
   status?: PostStatus;
-  categoryId?: string;
-  authorId?: string;
-  isFeatured?: boolean;
+  category_id?: string;
+  author_id?: string;
+  is_featured?: boolean;
   query?: string;
-  sortBy?: "created_at" | "updated_at" | "published_at";
-  sortOrder?: "asc" | "desc";
+  sort_by?: "created_at" | "updated_at" | "published_at";
+  sort_order?: "asc" | "desc";
 }
 
 export enum PostStatus {
@@ -32,12 +32,13 @@ export enum PostStatus {
 
 export interface User {
   id: string;
-  name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
-  avatar?: string;
+  avatar_url?: string;
   bio?: string;
-  createdAt: string;
-  updatedAt?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Category {
@@ -46,8 +47,8 @@ export interface Category {
   slug: string;
   description?: string;
   color?: string;
-  createdAt: string;
-  updatedAt?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Tag {
@@ -55,6 +56,6 @@ export interface Tag {
   name: string;
   slug: string;
   color?: string;
-  createdAt: string;
-  updatedAt?: string;
+  created_at: string;
+  updated_at?: string;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@blognow/sdk",
-  "version": "1.1.1",
+  "version": "1.1.5",
   "description": "Official JavaScript/TypeScript SDK for BlogNow API",
   "keywords": [
     "blognow",

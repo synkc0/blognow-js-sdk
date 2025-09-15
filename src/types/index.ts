@@ -4,6 +4,7 @@ export * from "./posts";
 export interface BlogNowConfig {
   apiKey: string;
   baseUrl?: string;
+  apiVersion?: string;
   timeout?: number;
   retries?: number;
   rateLimitPerSecond?: number;
