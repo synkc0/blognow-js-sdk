@@ -11,7 +11,8 @@ export default {
     name: 'BlogNowSDK',
     sourcemap: true,
     globals: {
-      'node-fetch': 'fetch'
+      'node-fetch': 'fetch',
+      'node-html-parser': 'nodeHtmlParser'
     }
   },
   plugins: [
@@ -35,5 +36,6 @@ export default {
       }
     })
   ],
-  external: []
+  // Keep the browser-global bundle lean: HTML parsing is for SSR/edge (ESM/CJS) builds.
+  external: ['node-html-parser']
 };

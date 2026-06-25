@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
-- Adds a runtime dependency on `node-html-parser` (bundled into the UMD build); the SDK is no longer strictly zero-dependency.
+- Adds a runtime dependency on `node-html-parser` (used by structured-data extraction); the SDK is no longer strictly zero-dependency. The ESM/CJS builds import it normally (resolved by the consumer's bundler/runtime); it is kept external in the browser-global UMD build to keep that artifact lean — structured-data extraction targets SSR/edge (ESM/CJS).
 - The lite endpoint returns posts newest-first (`published_at` descending) and exposes no `sort_by`/`sort_order`; the SDK maps the `query` option to the endpoint's `q` param.
 
 ## [1.0.0] - 2023-XX-XX
