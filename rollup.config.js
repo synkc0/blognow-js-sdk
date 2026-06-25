@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 
 export default {
@@ -18,6 +19,7 @@ export default {
       browser: true,
       preferBuiltins: false
     }),
+    commonjs(),
     typescript({
       target: 'es5',
       module: 'es2015',

@@ -8,7 +8,11 @@ module.exports = {
   ],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
+    // entities (transitive of node-html-parser) ships ESM-only; downlevel it for Jest.
+    '^.+\\.js$': ['ts-jest', { isolatedModules: true, tsconfig: { allowJs: true } }],
   },
+  // Transform only the ESM dep, keep the rest of node_modules ignored.
+  transformIgnorePatterns: ['/node_modules/(?!(entities)/)'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',

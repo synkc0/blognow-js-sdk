@@ -24,6 +24,19 @@ export interface GetPostsOptions {
   sort_order?: "asc" | "desc";
 }
 
+// Options for GET /v1/posts/lite (lite endpoint exposes no sort params).
+export interface GetPostSummariesOptions {
+  page?: number;
+  size?: number;
+  max_size?: number;
+  query?: string; // mapped to `q` by the service
+  status?: PostStatus;
+  category_id?: string;
+  author_id?: string;
+  is_featured?: boolean;
+  is_published?: boolean;
+}
+
 export enum PostStatus {
   DRAFT = "draft",
   PUBLISHED = "published",

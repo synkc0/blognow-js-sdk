@@ -119,7 +119,7 @@ describe('BlogNowClient', () => {
       const result = await client.healthCheck();
       
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/api/v1/health',
+        'https://api.test.com/v1/health',
         expect.any(Object)
       );
       expect(result).toEqual(mockResponse);

@@ -24,6 +24,9 @@ export interface Post {
   tags?: Tag[];
 }
 
+// Lite listing item — every Post field except the HTML body.
+export type PostSummary = Omit<Post, "content">;
+
 export interface CreatePostRequest {
   title: string;
   content: string;

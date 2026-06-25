@@ -14,7 +14,8 @@ Official JavaScript/TypeScript SDK for the BlogNow API. This SDK provides a simp
 - 🔄 **Automatic retries**: Intelligent retry logic with exponential backoff
 - 🚦 **Rate limiting**: Built-in rate limiting to respect API limits
 - ❌ **Error handling**: Comprehensive error classes for different scenarios
-- 🪶 **Lightweight**: Zero dependencies, minimal bundle size
+- 🪶 **Lightweight**: Minimal footprint (single small dependency: `node-html-parser`, used by structured-data extraction)
+- 🔎 **SEO-ready**: Extract schema.org JSON-LD (`ItemList`, `FAQPage`) straight from post content
 - 🔧 **Configurable**: Flexible configuration options
 
 ## Installation
@@ -88,6 +89,29 @@ const posts = await client.posts.getPublishedPosts({
   sortOrder: "desc",
 });
 ```
+
+#### Get Published Post Summaries (Lightweight Listing)
+
+For listing pages (cards), use the lite endpoint — it omits the post `content` on
+the wire, so you only transfer what cards need (title, excerpt, image, date, author).
+
+```typescript
+// PaginatedResponse<PostSummary> — PostSummary === Omit<Post, "content">
+const summaries = await client.posts.getPublishedPostSummaries({
+  page: 1,
+  size: 20,
+  query: "staffing", // mapped to the endpoint's `q` param
+});
+
+// Or iterate every published post summary, paging automatically:
+for await (const summary of client.posts.iteratePublishedPostSummaries()) {
+  console.log(summary.title, summary.excerpt);
+}
+```
+
+> Note: the lite endpoint returns posts newest-first (`published_at` descending) by
+> default, so listing pages can render the page as-is without re-sorting. It does not
+> accept custom `sort_by`/`sort_order` params.
 
 #### Get All Posts (Any Status)
 
@@ -205,6 +229,42 @@ console.log(
   `Total: ${stats.total}, Published: ${stats.published}, Draft: ${stats.draft}`
 );
 ```
+
+## Structured Data (JSON-LD)
+
+`extractStructuredData` parses a post's HTML `content` into ready-to-emit
+schema.org JSON-LD. It is **pure, synchronous, and isomorphic** (Node SSR + edge),
+and **conservative**: it emits a schema only when confident, so you never ship
+markup that mismatches the visible page.
+
+```tsx
+import { extractStructuredData } from "@blognow/sdk";
+
+const post = await client.posts.getPost(slug);
+const sd = extractStructuredData(post.content, { pageUrl });
+
+// Emit whichever blocks the SDK was confident about:
+{sd.itemList && (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(sd.itemList) }}
+  />
+)}
+{sd.faqPage && (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{ __html: JSON.stringify(sd.faqPage) }}
+  />
+)}
+```
+
+- **`itemList`** (schema.org `ItemList`) — for ranked "top N" listicles. Emitted
+  only when numbered section headings and an "at a glance" ordered list agree on
+  count (≥3 items). Item `url`s are added as `${pageUrl}#${headingId}` when headings
+  have `id`s and `pageUrl` is provided.
+- **`faqPage`** (schema.org `FAQPage`) — for posts with an FAQ section. Emitted only
+  when ≥2 well-formed Q/A pairs are found; answers are rendered to plain text.
+- A post with neither returns `{}`.
 
 ## Error Handling
 

@@ -1,8 +1,10 @@
 import { HttpClient } from "../utils/http";
 import {
   Post,
+  PostSummary,
   PaginatedResponse,
   GetPostsOptions,
+  GetPostSummariesOptions,
   CreatePostRequest,
   UpdatePostRequest,
   PostsFilterParams,
@@ -20,6 +22,51 @@ export class PostsService {
     };
 
     return this.http.get<PaginatedResponse<Post>>("posts", params);
+  }
+
+  // Lite listing: same filters as getPublishedPosts but the API omits `content`.
+  async getPublishedPostSummaries(
+    options?: GetPostSummariesOptions
+  ): Promise<PaginatedResponse<PostSummary>> {
+    return this.http.get<PaginatedResponse<PostSummary>>(
+      "posts/lite",
+      this.toLiteParams(options)
+    );
+  }
+
+  async *iteratePublishedPostSummaries(
+    options?: GetPostSummariesOptions
+  ): AsyncGenerator<PostSummary, void, unknown> {
+    let page = options?.page || 1;
+    const size = options?.size || 20;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await this.getPublishedPostSummaries({
+        ...options,
+        page,
+        size,
+      });
+
+      for (const post of response.items) {
+        yield post;
+      }
+
+      hasMore = page < response.pages;
+      page++;
+    }
+  }
+
+  // The lite endpoint names the search param `q`, not `query`.
+  private toLiteParams(
+    options?: GetPostSummariesOptions
+  ): Record<string, unknown> {
+    if (!options) {
+      return {};
+    }
+
+    const { query, ...rest } = options;
+    return query !== undefined ? { ...rest, q: query } : { ...rest };
   }
 
   async getAllPosts(
@@ -118,28 +165,28 @@ export class PostsService {
   //   }
   // }
 
-  // async *iteratePublishedPosts(
-  //   options?: GetPostsOptions
-  // ): AsyncGenerator<Post, void, unknown> {
-  //   let page = options?.page || 1;
-  //   const size = options?.size || 20;
-  //   let hasMore = true;
+  async *iteratePublishedPosts(
+    options?: GetPostsOptions
+  ): AsyncGenerator<Post, void, unknown> {
+    let page = options?.page || 1;
+    const size = options?.size || 20;
+    let hasMore = true;
 
-  //   while (hasMore) {
-  //     const response = await this.getPublishedPosts({
-  //       ...options,
-  //       page,
-  //       size,
-  //     });
+    while (hasMore) {
+      const response = await this.getPublishedPosts({
+        ...options,
+        page,
+        size,
+      });
 
-  //     for (const post of response.items) {
-  //       yield post;
-  //     }
+      for (const post of response.items) {
+        yield post;
+      }
 
-  //     hasMore = page < response.pages;
-  //     page++;
-  //   }
-  // }
+      hasMore = page < response.pages;
+      page++;
+    }
+  }
 
   // async *iteratePostsByAuthor(
   //   authorId: string,

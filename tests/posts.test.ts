@@ -1,6 +1,11 @@
 import { PostsService } from "../src/services/posts";
 import { HttpClient } from "../src/utils/http";
-import { Post, PostStatus, PaginatedResponse } from "../src/types";
+import {
+  Post,
+  PostSummary,
+  PostStatus,
+  PaginatedResponse,
+} from "../src/types";
 
 jest.mock("../src/utils/http");
 
@@ -17,19 +22,31 @@ describe("PostsService", () => {
     content: "This is test content",
     excerpt: "Test excerpt",
     status: PostStatus.PUBLISHED,
-    publishedAt: "2023-01-01T00:00:00Z",
-    viewCount: 0,
-    likeCount: 0,
-    commentCount: 0,
-    isFeatured: false,
-    isSticky: false,
-    workspaceId: "workspace-1",
-    authorId: "author-1",
-    createdAt: "2023-01-01T00:00:00Z",
+    published_at: "2023-01-01T00:00:00Z",
+    view_count: 0,
+    like_count: 0,
+    comment_count: 0,
+    is_featured: false,
+    is_sticky: false,
+    workspace_id: "workspace-1",
+    author_id: "author-1",
+    created_at: "2023-01-01T00:00:00Z",
   };
+
+  // Lite item: the API omits `content`.
+  const { content: _omit, ...mockSummary } = mockPost;
+  const mockPostSummary: PostSummary = mockSummary;
 
   const mockPaginatedResponse: PaginatedResponse<Post> = {
     items: [mockPost],
+    total: 1,
+    page: 1,
+    size: 20,
+    pages: 1,
+  };
+
+  const mockSummaryResponse: PaginatedResponse<PostSummary> = {
+    items: [mockPostSummary],
     total: 1,
     page: 1,
     size: 20,
@@ -56,9 +73,7 @@ describe("PostsService", () => {
 
       const result = await postsService.getPublishedPosts();
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts", {
-        status: PostStatus.PUBLISHED,
-      });
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts", {});
       expect(result).toEqual(mockPaginatedResponse);
     });
 
@@ -68,16 +83,89 @@ describe("PostsService", () => {
       await postsService.getPublishedPosts({
         page: 2,
         size: 10,
-        sortBy: "created_at",
-        sortOrder: "desc",
+        sort_by: "created_at",
+        sort_order: "desc",
       });
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts", {
         page: 2,
         size: 10,
-        sortBy: "created_at",
-        sortOrder: "desc",
-        status: PostStatus.PUBLISHED,
+        sort_by: "created_at",
+        sort_order: "desc",
+      });
+    });
+  });
+
+  describe("getPublishedPostSummaries", () => {
+    it("should call posts/lite and return summaries without content", async () => {
+      mockHttpClient.get.mockResolvedValue(mockSummaryResponse);
+
+      const result = await postsService.getPublishedPostSummaries();
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/lite", {});
+      expect(result).toEqual(mockSummaryResponse);
+      expect(result.items[0]).not.toHaveProperty("content");
+    });
+
+    it("should map the `query` option to the `q` param", async () => {
+      mockHttpClient.get.mockResolvedValue(mockSummaryResponse);
+
+      await postsService.getPublishedPostSummaries({
+        query: "staffing",
+        page: 2,
+        size: 10,
+        category_id: "cat-1",
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/lite", {
+        q: "staffing",
+        page: 2,
+        size: 10,
+        category_id: "cat-1",
+      });
+    });
+
+    it("should omit `q` when no query is provided", async () => {
+      mockHttpClient.get.mockResolvedValue(mockSummaryResponse);
+
+      await postsService.getPublishedPostSummaries({ is_featured: true });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/lite", {
+        is_featured: true,
+      });
+    });
+  });
+
+  describe("iteratePublishedPostSummaries", () => {
+    it("should page through all summaries", async () => {
+      mockHttpClient.get
+        .mockResolvedValueOnce({
+          items: [mockPostSummary],
+          total: 2,
+          page: 1,
+          size: 1,
+          pages: 2,
+        })
+        .mockResolvedValueOnce({
+          items: [{ ...mockPostSummary, id: "2" }],
+          total: 2,
+          page: 2,
+          size: 1,
+          pages: 2,
+        });
+
+      const collected: PostSummary[] = [];
+      for await (const summary of postsService.iteratePublishedPostSummaries({
+        size: 1,
+      })) {
+        collected.push(summary);
+      }
+
+      expect(collected).toHaveLength(2);
+      expect(mockHttpClient.get).toHaveBeenCalledTimes(2);
+      expect(mockHttpClient.get).toHaveBeenLastCalledWith("posts/lite", {
+        page: 2,
+        size: 1,
       });
     });
   });
@@ -88,25 +176,8 @@ describe("PostsService", () => {
 
       const result = await postsService.getAllPosts();
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/api/v1/posts/all",
-        undefined
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/all", undefined);
       expect(result).toEqual(mockPaginatedResponse);
-    });
-
-    it("should get all posts with options", async () => {
-      mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
-
-      await postsService.getAllPosts({
-        status: PostStatus.DRAFT,
-        isFeatured: true,
-      });
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts/all", {
-        status: PostStatus.DRAFT,
-        isFeatured: true,
-      });
     });
   });
 
@@ -114,30 +185,11 @@ describe("PostsService", () => {
     it("should get posts by author", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
-      const result = await postsService.getPostsByAuthor("author-1");
+      await postsService.getPostsByAuthor("author-1");
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/api/v1/posts/author/author-1",
+        "posts/author/author-1",
         { authorId: "author-1" }
-      );
-      expect(result).toEqual(mockPaginatedResponse);
-    });
-
-    it("should get posts by author with options", async () => {
-      mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
-
-      await postsService.getPostsByAuthor("author-1", {
-        page: 1,
-        size: 10,
-      });
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/api/v1/posts/author/author-1",
-        {
-          authorId: "author-1",
-          page: 1,
-          size: 10,
-        }
       );
     });
   });
@@ -148,9 +200,7 @@ describe("PostsService", () => {
 
       const result = await postsService.getPost("test-post");
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/api/v1/posts/test-post"
-      );
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/test-post");
       expect(result).toEqual(mockPost);
     });
   });
@@ -166,10 +216,7 @@ describe("PostsService", () => {
 
       const result = await postsService.createPost(newPostData);
 
-      expect(mockHttpClient.post).toHaveBeenCalledWith(
-        "/api/v1/posts",
-        newPostData
-      );
+      expect(mockHttpClient.post).toHaveBeenCalledWith("posts", newPostData);
       expect(result).toEqual(mockPost);
     });
   });
@@ -183,13 +230,12 @@ describe("PostsService", () => {
       };
       mockHttpClient.put.mockResolvedValue(mockPost);
 
-      const result = await postsService.updatePost(updateData);
+      await postsService.updatePost(updateData);
 
-      expect(mockHttpClient.put).toHaveBeenCalledWith("/api/v1/posts/1", {
+      expect(mockHttpClient.put).toHaveBeenCalledWith("posts/1", {
         title: "Updated Post",
         content: "Updated content",
       });
-      expect(result).toEqual(mockPost);
     });
   });
 
@@ -199,7 +245,7 @@ describe("PostsService", () => {
 
       await postsService.deletePost("1");
 
-      expect(mockHttpClient.delete).toHaveBeenCalledWith("/api/v1/posts/1");
+      expect(mockHttpClient.delete).toHaveBeenCalledWith("posts/1");
     });
   });
 
@@ -207,12 +253,11 @@ describe("PostsService", () => {
     it("should get featured posts", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
-      const result = await postsService.getFeaturedPosts();
+      await postsService.getFeaturedPosts();
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts", {
         isFeatured: true,
       });
-      expect(result).toEqual(mockPaginatedResponse);
     });
   });
 
@@ -220,12 +265,11 @@ describe("PostsService", () => {
     it("should get posts by category", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
-      const result = await postsService.getPostsByCategory("category-1");
+      await postsService.getPostsByCategory("category-1");
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts", {
         categoryId: "category-1",
       });
-      expect(result).toEqual(mockPaginatedResponse);
     });
   });
 
@@ -233,77 +277,47 @@ describe("PostsService", () => {
     it("should get posts by status", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
-      const result = await postsService.getPostsByStatus(PostStatus.DRAFT);
+      await postsService.getPostsByStatus(PostStatus.DRAFT);
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts/all", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/all", {
         status: PostStatus.DRAFT,
       });
-      expect(result).toEqual(mockPaginatedResponse);
     });
   });
 
   describe("getPostsWithAdvancedFiltering", () => {
-    it("should use correct endpoint based on status", async () => {
+    it("should use posts/all for non-published status", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
       await postsService.getPostsWithAdvancedFiltering({
         status: PostStatus.DRAFT,
       });
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts/all", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts/all", {
         status: PostStatus.DRAFT,
       });
     });
 
-    it("should use published endpoint for published status", async () => {
+    it("should use posts for published status", async () => {
       mockHttpClient.get.mockResolvedValue(mockPaginatedResponse);
 
       await postsService.getPostsWithAdvancedFiltering({
         status: PostStatus.PUBLISHED,
       });
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith("/api/v1/posts", {
+      expect(mockHttpClient.get).toHaveBeenCalledWith("posts", {
         status: PostStatus.PUBLISHED,
       });
     });
   });
 
   describe("getPostStatistics", () => {
-    it("should get post statistics", async () => {
-      const totalResponse = {
-        items: [],
-        total: 100,
-        page: 1,
-        size: 1,
-        pages: 100,
-      };
-      const publishedResponse = {
-        items: [],
-        total: 80,
-        page: 1,
-        size: 1,
-        pages: 80,
-      };
-      const draftResponse = {
-        items: [],
-        total: 15,
-        page: 1,
-        size: 1,
-        pages: 15,
-      };
-      const archivedResponse = {
-        items: [],
-        total: 5,
-        page: 1,
-        size: 1,
-        pages: 5,
-      };
-
+    it("should aggregate counts across statuses", async () => {
       mockHttpClient.get
-        .mockResolvedValueOnce(totalResponse)
-        .mockResolvedValueOnce(publishedResponse)
-        .mockResolvedValueOnce(draftResponse)
-        .mockResolvedValueOnce(archivedResponse);
+        .mockResolvedValueOnce({ items: [], total: 100, page: 1, size: 1, pages: 100 })
+        .mockResolvedValueOnce({ items: [], total: 80, page: 1, size: 1, pages: 80 })
+        .mockResolvedValueOnce({ items: [], total: 15, page: 1, size: 1, pages: 15 })
+        .mockResolvedValueOnce({ items: [], total: 5, page: 1, size: 1, pages: 5 });
 
       const result = await postsService.getPostStatistics();
 

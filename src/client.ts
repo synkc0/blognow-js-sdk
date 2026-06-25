@@ -69,7 +69,7 @@ export class BlogNowClient {
   }
 
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
-    return this.http.get<{ status: string; timestamp: string }>("/health");
+    return this.http.get<{ status: string; timestamp: string }>("health");
   }
 
   getConfig(): Readonly<Required<BlogNowConfig>> {
