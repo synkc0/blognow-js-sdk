@@ -1,8 +1,10 @@
 import { HttpClient } from "../utils/http";
 import {
   Post,
+  PostSummary,
   PaginatedResponse,
   GetPostsOptions,
+  GetPostSummariesOptions,
   CreatePostRequest,
   UpdatePostRequest,
   PostsFilterParams,
@@ -17,16 +19,60 @@ export class PostsService {
   ): Promise<PaginatedResponse<Post>> {
     const params = {
       ...options,
-      status: PostStatus.PUBLISHED,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
+  }
+
+  // Lite listing: same filters as getPublishedPosts but the API omits `content`.
+  async getPublishedPostSummaries(
+    options?: GetPostSummariesOptions
+  ): Promise<PaginatedResponse<PostSummary>> {
+    return this.http.get<PaginatedResponse<PostSummary>>(
+      "posts/lite",
+      this.toLiteParams(options)
+    );
+  }
+
+  async *iteratePublishedPostSummaries(
+    options?: GetPostSummariesOptions
+  ): AsyncGenerator<PostSummary, void, unknown> {
+    let page = options?.page || 1;
+    const size = options?.size || 20;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await this.getPublishedPostSummaries({
+        ...options,
+        page,
+        size,
+      });
+
+      for (const post of response.items) {
+        yield post;
+      }
+
+      hasMore = page < response.pages;
+      page++;
+    }
+  }
+
+  // The lite endpoint names the search param `q`, not `query`.
+  private toLiteParams(
+    options?: GetPostSummariesOptions
+  ): Record<string, unknown> {
+    if (!options) {
+      return {};
+    }
+
+    const { query, ...rest } = options;
+    return query !== undefined ? { ...rest, q: query } : { ...rest };
   }
 
   async getAllPosts(
     options?: GetPostsOptions
   ): Promise<PaginatedResponse<Post>> {
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts/all", options);
+    return this.http.get<PaginatedResponse<Post>>("posts/all", options);
   }
 
   async getPostsByAuthor(
@@ -39,26 +85,26 @@ export class PostsService {
     };
 
     return this.http.get<PaginatedResponse<Post>>(
-      `/api/v1/posts/author/${authorId}`,
+      `posts/author/${authorId}`,
       params
     );
   }
 
   async getPost(slug: string): Promise<Post> {
-    return this.http.get<Post>(`/api/v1/posts/${slug}`);
+    return this.http.get<Post>(`posts/${slug}`);
   }
 
   async createPost(postData: CreatePostRequest): Promise<Post> {
-    return this.http.post<Post>("/api/v1/posts", postData);
+    return this.http.post<Post>("posts", postData);
   }
 
   async updatePost(postData: UpdatePostRequest): Promise<Post> {
     const { id, ...updateData } = postData;
-    return this.http.put<Post>(`/api/v1/posts/${id}`, updateData);
+    return this.http.put<Post>(`posts/${id}`, updateData);
   }
 
   async deletePost(id: string): Promise<void> {
-    await this.http.delete<void>(`/api/v1/posts/${id}`);
+    await this.http.delete<void>(`posts/${id}`);
   }
 
   async getFeaturedPosts(
@@ -69,7 +115,7 @@ export class PostsService {
       isFeatured: true,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
   }
 
   async getPostsByCategory(
@@ -81,7 +127,7 @@ export class PostsService {
       categoryId,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts", params);
+    return this.http.get<PaginatedResponse<Post>>("posts", params);
   }
 
   async getPostsByStatus(
@@ -93,7 +139,7 @@ export class PostsService {
       status,
     };
 
-    return this.http.get<PaginatedResponse<Post>>("/api/v1/posts/all", params);
+    return this.http.get<PaginatedResponse<Post>>("posts/all", params);
   }
 
   // async *iterateAllPosts(
@@ -119,28 +165,28 @@ export class PostsService {
   //   }
   // }
 
-  // async *iteratePublishedPosts(
-  //   options?: GetPostsOptions
-  // ): AsyncGenerator<Post, void, unknown> {
-  //   let page = options?.page || 1;
-  //   const size = options?.size || 20;
-  //   let hasMore = true;
+  async *iteratePublishedPosts(
+    options?: GetPostsOptions
+  ): AsyncGenerator<Post, void, unknown> {
+    let page = options?.page || 1;
+    const size = options?.size || 20;
+    let hasMore = true;
 
-  //   while (hasMore) {
-  //     const response = await this.getPublishedPosts({
-  //       ...options,
-  //       page,
-  //       size,
-  //     });
+    while (hasMore) {
+      const response = await this.getPublishedPosts({
+        ...options,
+        page,
+        size,
+      });
 
-  //     for (const post of response.items) {
-  //       yield post;
-  //     }
+      for (const post of response.items) {
+        yield post;
+      }
 
-  //     hasMore = page < response.pages;
-  //     page++;
-  //   }
-  // }
+      hasMore = page < response.pages;
+      page++;
+    }
+  }
 
   // async *iteratePostsByAuthor(
   //   authorId: string,
@@ -171,8 +217,8 @@ export class PostsService {
   ): Promise<PaginatedResponse<Post>> {
     const endpoint =
       filters.status && filters.status !== PostStatus.PUBLISHED
-        ? "/api/v1/posts/all"
-        : "/api/v1/posts";
+        ? "posts/all"
+        : "posts";
 
     return this.http.get<PaginatedResponse<Post>>(endpoint, filters);
   }

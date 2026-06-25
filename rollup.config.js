@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 
 export default {
@@ -10,7 +11,8 @@ export default {
     name: 'BlogNowSDK',
     sourcemap: true,
     globals: {
-      'node-fetch': 'fetch'
+      'node-fetch': 'fetch',
+      'node-html-parser': 'nodeHtmlParser'
     }
   },
   plugins: [
@@ -18,6 +20,7 @@ export default {
       browser: true,
       preferBuiltins: false
     }),
+    commonjs(),
     typescript({
       target: 'es5',
       module: 'es2015',
@@ -33,5 +36,6 @@ export default {
       }
     })
   ],
-  external: []
+  // Keep the browser-global bundle lean: HTML parsing is for SSR/edge (ESM/CJS) builds.
+  external: ['node-html-parser']
 };

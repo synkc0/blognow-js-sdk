@@ -19,6 +19,7 @@ export class HttpClient {
     this.config = {
       apiKey: config.apiKey,
       baseUrl: config.baseUrl || "https://api.blognow.tech",
+      apiVersion: config.apiVersion || "v1",
       timeout: config.timeout || 30000,
       retries: config.retries || 3,
       rateLimitPerSecond: config.rateLimitPerSecond || 10,
@@ -50,7 +51,10 @@ export class HttpClient {
   }
 
   private buildUrl(path: string, params?: Record<string, any>): string {
-    const url = new URL(path, this.config.baseUrl);
+    const url = new URL(
+      `${this.config.apiVersion}/${path}`,
+      this.config.baseUrl
+    );
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -73,7 +77,6 @@ export class HttpClient {
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${this.config.apiKey}`,
-      "User-Agent": "@blognow/sdk/1.0.0",
       ...this.config.customHeaders,
       ...customHeaders,
     };

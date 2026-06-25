@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-25
+
+### Added
+
+- `extractStructuredData(content, options?)` — pure, isomorphic function that turns post HTML into ready-to-emit schema.org JSON-LD, so consumers stop re-implementing (and drifting on) schema logic per site.
+  - `ItemList` for ranked "top N" listicles; emitted only when numbered headings and an "at a glance" ordered list agree on count (≥3 items) to avoid markup that mismatches the visible page.
+  - `FAQPage` for posts with an FAQ section; emitted only with ≥2 well-formed Q/A pairs.
+  - New exported types: `PostStructuredData`, `StructuredDataOptions`, `JsonLdObject`.
+- `posts.getPublishedPostSummaries()` / `posts.iteratePublishedPostSummaries()` — wrap `GET /v1/posts/lite` so the `/blog` listing transfers cards without the post body (payload reduced on the wire, not client-side).
+- New types: `PostSummary` (`Omit<Post, "content">`) and `GetPostSummariesOptions`.
+
+### Fixed
+
+- `healthCheck()` no longer produces a double-slash path (`v1//health` → `v1/health`).
+
+### Notes
+
+- Adds a runtime dependency on `node-html-parser` (used by structured-data extraction); the SDK is no longer strictly zero-dependency. The ESM/CJS builds import it normally (resolved by the consumer's bundler/runtime); it is kept external in the browser-global UMD build to keep that artifact lean — structured-data extraction targets SSR/edge (ESM/CJS).
+- The lite endpoint returns posts newest-first (`published_at` descending) and exposes no `sort_by`/`sort_order`; the SDK maps the `query` option to the endpoint's `q` param.
+
 ## [1.0.0] - 2023-XX-XX
 
 ### Added

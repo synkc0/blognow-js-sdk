@@ -6,40 +6,39 @@ export interface Post {
   slug: string;
   content: string;
   excerpt?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  ogImageUrl?: string;
+  og_image_url?: string;
   status: PostStatus;
-  publishedAt?: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  isFeatured: boolean;
-  isSticky: boolean;
-  workspaceId: string;
-  authorId: string;
-  categoryId?: string;
-  createdAt: string;
-  updatedAt?: string;
+  published_at?: string;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  is_featured: boolean;
+  is_sticky: boolean;
+  workspace_id: string;
+  category_id?: string;
+  created_at: string;
+  updated_at?: string;
+  author_id?: string;
   author?: User;
   category?: Category;
   tags?: Tag[];
 }
+
+// Lite listing item — every Post field except the HTML body.
+export type PostSummary = Omit<Post, "content">;
 
 export interface CreatePostRequest {
   title: string;
   content: string;
   slug?: string;
   excerpt?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  ogImageUrl?: string;
+  og_image_url?: string;
   status?: PostStatus;
-  publishedAt?: string;
-  isFeatured?: boolean;
-  isSticky?: boolean;
-  categoryId?: string;
-  tagIds?: string[];
+  published_at?: string;
+  is_featured?: boolean;
+  is_sticky?: boolean;
+  category_id?: string;
+  tag_ids?: string[];
 }
 
 export interface UpdatePostRequest extends Partial<CreatePostRequest> {
@@ -48,12 +47,12 @@ export interface UpdatePostRequest extends Partial<CreatePostRequest> {
 
 export interface PostsFilterParams {
   status?: PostStatus;
-  categoryId?: string;
-  authorId?: string;
-  isFeatured?: boolean;
-  isSticky?: boolean;
+  category_id?: string;
+  author_id?: string;
+  is_featured?: boolean;
+  is_sticky?: boolean;
   query?: string;
   tags?: string[];
-  dateFrom?: string;
-  dateTo?: string;
+  date_from?: string;
+  date_to?: string;
 }

@@ -71,10 +71,10 @@ describe('HttpClient', () => {
         headers: new Headers({ 'content-type': 'application/json' }),
       } as Response);
 
-      const result = await client.get('/api/posts');
-      
+      const result = await client.get('posts');
+
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/api/posts',
+        'https://api.test.com/v1/posts',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -97,10 +97,10 @@ describe('HttpClient', () => {
         headers: new Headers({ 'content-type': 'application/json' }),
       } as Response);
 
-      const result = await client.post('/api/posts', requestBody);
-      
+      const result = await client.post('posts', requestBody);
+
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/api/posts',
+        'https://api.test.com/v1/posts',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(requestBody),
@@ -117,10 +117,10 @@ describe('HttpClient', () => {
         headers: new Headers({ 'content-type': 'application/json' }),
       } as Response);
 
-      await client.get('/api/posts', { page: 1, size: 10, status: 'published' });
-      
+      await client.get('posts', { page: 1, size: 10, status: 'published' });
+
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/api/posts?page=1&size=10&status=published',
+        'https://api.test.com/v1/posts?page=1&size=10&status=published',
         expect.any(Object)
       );
     });
@@ -133,10 +133,10 @@ describe('HttpClient', () => {
         headers: new Headers({ 'content-type': 'application/json' }),
       } as Response);
 
-      await client.get('/api/posts', { tags: ['javascript', 'typescript'] });
-      
+      await client.get('posts', { tags: ['javascript', 'typescript'] });
+
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.test.com/api/posts?tags=javascript&tags=typescript',
+        'https://api.test.com/v1/posts?tags=javascript&tags=typescript',
         expect.any(Object)
       );
     });
